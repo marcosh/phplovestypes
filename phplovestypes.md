@@ -336,7 +336,7 @@ Note: good for typing legacy code, not for domain modelling; leads to sloppy API
 
 Adds type variables to the type system
 
-```php [2|1|4-5|7-8|11-12|14-15]
+```php [2|1|4-5|7-8|11-12]
 /** @template A */
 final class Repository
 {
@@ -349,9 +349,6 @@ final class Repository
 
 /** @var Repository<User> */
 $userRepository = new Repository();
-
-/** @var Repository<Order> */
-$orderRepository = new Repository();
 ```
 
 Note: allows to abstract code to more generic and reusable piaces
@@ -539,7 +536,7 @@ interface Validator
 }
 ```
 
-what should be the return type? <!-- .element: class="fragment" -->
+what should the return type be? <!-- .element: class="fragment" -->
 
 ---
 
@@ -565,25 +562,183 @@ access information only in the **relevant** case
 
 <div class="fragment">
 
-Exceptions  <span class="fragment">❌</span>
+Exceptions <span style="visibility:hidden">❌</span>
+
+</div><div style="visibility:hidden"><div>
+
+`isValid` <span>❌</span>
+
+</div><div>
+
+Inheritance <span>❌</span>
+
+</div><div>
+
+Union types <span>❌</span>
+
+</div></div>
+
+---
+
+#### Exceptions
+
+```php [1-5|7-12]
+/**
+ * @template A
+ * @template B
+ */
+interface Validator
+{
+  /**
+   * @param A $data
+   * @return B
+   * @throws ValidationFailure
+   */
+  public function validate($data);
+}
+```
+
+---
+
+#### Ideas
+
+<div>
+
+Exceptions <span class="fragment">❌</span>
 
 </div><div class="fragment">
+
+`isValid` <span style="visibility:hidden">❌</span>
+
+</div><div style="visibility:hidden"><div>
+
+Inheritance <span>❌</span>
+
+</div><div>
+
+Union types <span>❌</span>
+
+</div></div>
+
+---
+
+#### IsValid
+
+```php [1-4|6-7|9-10]
+/** @template A */
+final class ValidationResult
+{
+  public function isValid(): bool;
+
+  /** @return A */
+  public function getResult();
+
+  /** @return list<string> */
+  public function errorMessages();
+}
+```
+
+---
+
+#### Ideas
+
+<div>
+
+Exceptions <span>❌</span>
+
+</div><div>
 
 `isValid` <span class="fragment">❌</span>
 
 </div><div class="fragment">
 
+Inheritance <span style="visibility:hidden">❌</span>
+
+</div><div style="visibility:hidden"><div>
+
+Union types <span>❌</span>
+
+</div></div>
+
+---
+
+#### Inheritance
+
+```php [1|4-5,8-9]
+interface ValidationResult
+{...}
+
+final class ValidationSuccess
+  implements ValidationResult
+{...}
+
+final class ValidationFailure
+  implements ValidationResult
+{...}
+```
+
+---
+
+#### Ideas
+
+<div>
+
+Exceptions <span>❌</span>
+
+</div><div>
+
+`isValid` <span>❌</span>
+
+</div><div>
+
 Inheritance <span class="fragment">❌</span>
 
 </div><div class="fragment">
 
-Union types <span class="fragment">❌</span>
+Union types <span style="visibility:hidden">❌</span>
 
-Note:
-- Exceptions: sematic + type level
-- `isValid`: not both + relevant info
-- inheritance: other cases
-- union type: not both
+</div>
+
+---
+
+#### Union types
+
+
+```php [1-5|7-12]
+/**
+ * @template A
+ * @template B
+ */
+interface Validator
+{
+  /**
+   * @param A $data
+   * @return ValidationSuccess<B>
+   *       | ValidationFailure
+   */
+  public function validate($data);
+}
+```
+
+---
+
+#### Ideas
+
+<div>
+
+Exceptions <span>❌</span>
+
+</div><div>
+
+`isValid` <span>❌</span>
+
+</div><div>
+
+Inheritance <span>❌</span>
+
+</div><div>
+
+Union types <span class="fragment">❌</span>
 
 </div>
 
@@ -704,6 +859,10 @@ $user = $userRepository->find($id);
 // Psalm complains
 $order = $orderRepository->find($id);
 ```
+
+---
+
+> One week of debugging saved me from an hour of type modelling
 
 ---
 
